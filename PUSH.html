@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=windows-1252"/>
+	<title></title>
+	<meta name="generator" content="LibreOffice 7.3.4.2 (Windows)"/>
+	<meta name="created" content="2025-11-12T17:18:22.033000000"/>
+	<meta name="changed" content="2025-11-12T17:18:40.564000000"/>
+</head>
+<body lang="en-US" dir="ltr"><p>#!/usr/bin/env bash<br/>
+# Push
+script to create the repo (if needed) and push the current directory
+to GitHub.<br/>
+# Usage:<br/>
+#   1) Place this script in the same
+folder as index.html, README.md, .gitignore<br/>
+#   2) chmod +x
+push.sh<br/>
+#   3) ./push.sh<br/>
+#<br/>
+# Requires: git and
+(optionally) GitHub CLI `gh` configured for your account.<br/>
+set
+-euo
+pipefail<br/>
+<br/>
+REPO_OWNER=&quot;ASSETCACHE&quot;<br/>
+REPO_NAME=&quot;Asset-Cache&quot;<br/>
+BRANCH=&quot;main&quot;<br/>
+COMMIT_MSG=&quot;initial
+Commit&quot;<br/>
+REMOTE_SSH=&quot;git@github.com:${REPO_OWNER}/${REPO_NAME}.git&quot;<br/>
+REMOTE_HTTPS=&quot;https://github.com/${REPO_OWNER}/${REPO_NAME}.git&quot;<br/>
+<br/>
+#
+If gh is available, try to create the repo if it doesn't exist<br/>
+if
+command -v gh &gt;/dev/null 2&gt;&amp;1; then<br/>
+  if ! gh repo
+view &quot;${REPO_OWNER}/${REPO_NAME}&quot; &gt;/dev/null 2&gt;&amp;1;
+then<br/>
+    echo &quot;Creating GitHub repo
+${REPO_OWNER}/${REPO_NAME} (public)...&quot;<br/>
+    gh repo create
+&quot;${REPO_OWNER}/${REPO_NAME}&quot; --public --description &quot;Assets
+Secured Shared Equity Trust&quot; --confirm<br/>
+  else<br/>
+    echo
+&quot;GitHub repo ${REPO_OWNER}/${REPO_NAME} already exists.&quot;<br/>
+
+ fi<br/>
+else<br/>
+  echo &quot;gh CLI not found. Make sure the
+remote repo exists at ${REMOTE_HTTPS} or install and authenticate
+gh.&quot;<br/>
+fi<br/>
+<br/>
+# Initialize local repo if needed<br/>
+if
+[ ! -d .git ]; then<br/>
+  echo &quot;Initializing git repository and
+setting branch to ${BRANCH}...&quot;<br/>
+  git init -b
+&quot;${BRANCH}&quot;<br/>
+fi<br/>
+<br/>
+# Ensure there are files to
+commit<br/>
+git add --all<br/>
+if git diff --cached --quiet; then<br/>
+
+ echo &quot;No changes staged for commit. Skipping commit
+step.&quot;<br/>
+else<br/>
+  git commit -m &quot;${COMMIT_MSG}&quot;<br/>
+fi<br/>
+<br/>
+#
+Add/set remote<br/>
+if git remote | grep -q &quot;^origin$&quot;;
+then<br/>
+  git remote set-url origin &quot;${REMOTE_SSH}&quot;
+2&gt;/dev/null || git remote set-url origin &quot;${REMOTE_HTTPS}&quot;<br/>
+else<br/>
+
+ git remote add origin &quot;${REMOTE_SSH}&quot; 2&gt;/dev/null ||
+git remote add origin &quot;${REMOTE_HTTPS}&quot;<br/>
+fi<br/>
+<br/>
+#
+Push. If remote has unrelated history, hint to the user.<br/>
+echo
+&quot;Pushing to origin ${BRANCH}...&quot;<br/>
+if git ls-remote
+--exit-code --heads origin &quot;${BRANCH}&quot; &gt;/dev/null 2&gt;&amp;1;
+then<br/>
+  # Branch exists on remote; do a normal push (may fail if
+histories diverge)<br/>
+  if git push -u origin &quot;${BRANCH}&quot;;
+then<br/>
+    echo &quot;Pushed to origin/${BRANCH}.&quot;<br/>
+ 
+else<br/>
+    echo &quot;Push failed due to diverging history. To
+force overwrite remote branch (CAUTION: will replace remote):&quot;<br/>
+
+   echo &quot;  git push -u origin ${BRANCH} --force&quot;<br/>
+   
+echo &quot;Or merge remote changes first:&quot;<br/>
+    echo &quot; 
+git fetch origin&quot;<br/>
+    echo &quot;  git merge
+origin/${BRANCH} --allow-unrelated-histories&quot;<br/>
+  fi<br/>
+else<br/>
+
+ # Branch doesn't exist on remote, push normally<br/>
+  git push -u
+origin &quot;${BRANCH}&quot;<br/>
+  echo &quot;Pushed to
+origin/${BRANCH}.&quot;<br/>
+fi<br/>
+<br/>
+echo &quot;Done.&quot;</p>
+</body>
+</html>
